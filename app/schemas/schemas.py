@@ -49,7 +49,7 @@ class UserLoginSchema(BaseModel):
 
 
 class SignupResponse(BaseModel):
-    result: str
+    detail: str
 
 
 class Token(BaseModel):

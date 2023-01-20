@@ -6,9 +6,12 @@ from fastapi import (APIRouter, Depends,
                      HTTPException, status)
 from decouple import config
 from ..auth import authentication
+from ..email.sendEmail import email
+from datetime import timedelta
 
-CONFIRMATION_TOKEN_EXPIRE_MINUSTES = config(
-    "CONFIRMATION_TOKEN_EXPIRE_MINUSTES")
+
+CONFIRMATION_TOKEN_EXPIRE_MINUSTES = int(config(
+    "CONFIRMATION_TOKEN_EXPIRE_MINUSTES"))
 router = APIRouter()
 auth = authentication.Authentication()
 
@@ -24,8 +27,7 @@ def signup(user: UserCreateSchema, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Choose a different username.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+            headers={"WWW-Authenticate": "Bearer"})
     else:
         Crud.create_user(db=db, UserCreateSchema=user,
                          hashed_password=auth.get_password_hash(user.password))
@@ -41,26 +43,3 @@ def signup(user: UserCreateSchema, db: Session = Depends(get_db)):
             status_code=status.HTTP_201_CREATED,
             detail="Please Confirm your mail with the token was sent by mail.",
             headers={"WWW-Authenticate": "Bearer"})
-
-
-# @router.post("/users/", tags=["users"], response_model=User)
-# async def create_user_route(user: UserCreate, db: Session = Depends(get_db)):
-#     db_user = get_user_by_email(db, email=user.email)
-#     if db_user:
-#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-#                             detail="Email already registered")
-#     elif not db_user:
-#         create_user(db=db, user=user)
-#         raise HTTPException(status_code=status.HTTP_201_CREATED,
-#                             detail="User was created!",
-#                             headers={"WWW-Authenticate": "Bearer"})
-
-
-# @router.get("/users/me", tags=["users"])
-# async def read_user_me():
-#     return {"username": "fakecurrentuser"}
-
-
-# @router.get("/users/{username}", tags=["users"])
-# async def read_user(username: str):
-#     return {"username": username}
