@@ -15,6 +15,13 @@ class User(BaseModel):
 class UserConfirm(BaseModel):
     confirmationToken: Union[str, None] = None
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "confirmationToken": "string"
+            }
+        }
+
 
 class UserCreateSchema(BaseModel):
     firstname: str = Field(min_length=2, max_length=30)
@@ -33,6 +40,15 @@ class UserCreateSchema(BaseModel):
                 "password": "any8.Any"
             }
         }
+
+
+class UserUpdateSchema(BaseModel):
+    firstname: str = Field(min_length=2, max_length=30)
+    lastname: str = Field(min_length=2, max_length=30)
+
+
+class UpdateResponse(BaseModel):
+    detail: str
 
 
 class UserLoginSchema(BaseModel):
@@ -70,4 +86,4 @@ class UserInDB(Users):
 
 
 class ConfirmationResponse(BaseModel):
-    result: str
+    detail: str

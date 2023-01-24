@@ -11,8 +11,8 @@ class Crud:
     def get_user_by_email(db: Session, email: str):
         return db.query(Users).filter(Users.email == email).first()
 
-    # def get_user_by_public_id(db: Session, public_id: str):
-    #     return db.query(User).filter(User.public_id == public_id).first()
+    def get_user_by_public_id(db: Session, public_id: str):
+        return db.query(Users).filter(Users.public_id == public_id).first()
 
     def get_user_by_username(db: Session, username: str):
         return db.query(Users).filter(Users.username == username).first()
@@ -23,12 +23,19 @@ class Crud:
     # def get_users(db: Session, skip: int = 0, limit: int = 100):
     #     return db.query(User).offset(skip).limit(limit).all()
 
-    # def confirm_account(db: Session, public_id: str):
-    #     user = db.query(User).filter(User.public_id == public_id).first()
-    #     user.confirmed = True
-    #     db.commit()
-    #     db.refresh(user)
-    #     return user
+    def update_user(current_user, db: Session, payload: dict):
+        current_user.firstname = payload.firstname
+        current_user.lastname = payload.lastname
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+
+    def confirm_account(db: Session, public_id: str):
+        user = db.query(Users).filter(Users.public_id == public_id).first()
+        user.confirmed = True
+        db.commit()
+        db.refresh(user)
+        return user
 
     def create_user(db: Session, UserCreateSchema, hashed_password):
         public_id = str(uuid.uuid4())
