@@ -3,7 +3,7 @@ from .test_conf import client, Base, engine
 from .test_crud import crud_public_id, auth, confirmation_token_expires
 
 
-def test_create_user_201():
+def test_create_user_201(firstname="sadf"):
     response = client.post(
         "/signup/",
         json={"firstname": "TestFirstname",
@@ -14,8 +14,8 @@ def test_create_user_201():
     assert response.status_code == status.HTTP_201_CREATED, response.text
     data = response.json()
     assert data["detail"]
-    assert data["detail"] == "Please Confirm your mail " \
-        "with the token was sent by mail."
+    assert data["detail"] == "Please Confirm your mail with"\
+        " the token was sent by mail."
 
 
 def test_user_signup_409():
@@ -130,7 +130,7 @@ def test_token_202():
 
 
 def test_user_update_401():
-    response = client.put("/user-update/",
+    response = client.put("/update/user/information/",
                           json={"firstname": "1",
                                 "lastname": "2"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -148,10 +148,109 @@ def test_user_update_202():
     assert res['access_token']
     access_token = res['access_token']
     headers = {'Authorization': f'Bearer {access_token}'}
-    response = client.put("/user-update",
+    response = client.put("/update/user/information/",
                           json={"firstname": "123412",
                                 "lastname": "2123123"}, headers=headers)
     assert response.status_code == status.HTTP_202_ACCEPTED
+
+
+def test_user_username_update_422():
+    response1 = client.post("/token/",
+                            data={"username": "Confirmation",
+                                  "password": "Confirmation.",
+                                  "grant_type": "password"},
+                            headers={"content-type":
+                                     "application/x-www-form-urlencoded"})
+    assert response1.status_code == status.HTTP_200_OK
+    res = response1.json()
+    assert res['access_token']
+    access_token = res['access_token']
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response2 = client.put("/update/user/username/",
+                           json={"username": "testname"}, headers=headers)
+    assert response2.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response2.json()["detail"] == "Choose a different username."
+
+
+def test_user_username_update_401():
+    response2 = client.put("/update/user/username/",
+                           json={"username": "testname"})
+    assert response2.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response2.json()["detail"] == "Not authenticated"
+
+
+def test_user_username_update_202():
+    response1 = client.post("/token/",
+                            data={"username": "Confirmation",
+                                  "password": "Confirmation.",
+                                  "grant_type": "password"},
+                            headers={"content-type":
+                                     "application/x-www-form-urlencoded"})
+    assert response1.status_code == status.HTTP_200_OK
+    res = response1.json()
+    assert res['access_token']
+    access_token = res['access_token']
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response2 = client.put("/update/user/username/",
+                           json={"username": "testname1"}, headers=headers)
+    assert response2.status_code == status.HTTP_202_ACCEPTED
+    assert response2.json()["detail"] == "Your data was proceded."
+
+
+def test_forget_password_404():
+    response = client.post("/user/password/forget",
+                           json={"email": "isitexisted@gmail.com"
+                                 })
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()[
+        'detail'] == "We couldn't find your email in the database."
+
+
+def test_forget_password_201():
+    response = client.post("/user/password/forget",
+                           json={"email": "Confirmation@email.com"
+                                 })
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['detail'] == "We sent you a token by email."
+
+
+def test_forget_password_token_200():
+    test_public_id = crud_public_id(email="Confirmation@email.com")
+    confirmation_token = auth.create_access_token(
+        data={"sub": test_public_id},
+        expires_delta=confirmation_token_expires)
+    response = client.put("/user/password/forget/token",
+                          json={"forget_token": confirmation_token,
+                                "new_password": "new_password",
+                                "new_password_again": "new_password"})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()[
+        "detail"] == "Your password is changed successfully."
+
+
+def test_forget_password_token_406():
+    test_public_id = crud_public_id(email="Confirmation@email.com")
+    confirmation_token = auth.create_access_token(
+        data={"sub": test_public_id},
+        expires_delta=confirmation_token_expires)
+    response = client.put("/user/password/forget/token",
+                          json={"forget_token": confirmation_token,
+                                "new_password": "new_password1",
+                                "new_password_again": "new_password"})
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+    assert response.json()[
+        "detail"] == "Passwords are not match."
+
+
+def test_forget_password_token_400():
+    response = client.put("/user/password/forget/token",
+                          json={"forget_token":
+                                "yKTB6h6fpv_CcyOHLzfo1HOvRbfFGaqGBesXzR8XKHM",
+                                "new_password": "new_password1",
+                                "new_password_again": "new_password1"})
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+    assert response.json()[
+        "detail"] == "Passwords are not match."
 
 
 Base.metadata.drop_all(bind=engine)

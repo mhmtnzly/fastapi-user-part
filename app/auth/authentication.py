@@ -8,7 +8,6 @@ from fastapi import (Depends, HTTPException, status,
                      Response)
 from ..schemas.schemas import TokenData
 from ..crud.crud import Crud
-from app.models.users import Users
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 
@@ -73,9 +72,6 @@ class Authentication:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Inactive user")
         return user
-
-    def get_current_active_user(user: Users = Depends(get_current_user)):
-        print(user)
 
     def get_confirmation(self, token: str):
         credentials_exception = HTTPException(

@@ -22,6 +22,17 @@ class Crud:
 
     # def get_users(db: Session, skip: int = 0, limit: int = 100):
     #     return db.query(User).offset(skip).limit(limit).all()
+    def update_password(current_user, db: Session, password: str):
+        current_user.password = password
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+
+    def update_username(current_user, db: Session, payload: dict):
+        current_user.username = payload.username
+        db.commit()
+        db.refresh(current_user)
+        return current_user
 
     def update_user(current_user, db: Session, payload: dict):
         current_user.firstname = payload.firstname

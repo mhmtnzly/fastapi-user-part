@@ -1,5 +1,4 @@
 from typing import Union
-from ..models.users import Users
 from pydantic import BaseModel, Field, EmailStr
 
 
@@ -30,17 +29,6 @@ class UserCreateSchema(BaseModel):
     email: EmailStr = Field(...)
     password: str = Field(...)
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "firstname": "Joe",
-                "lastname": "Doe",
-                "username": "joedoe34",
-                "email": "joe@xyz.com",
-                "password": "any8.Any"
-            }
-        }
-
 
 class UserUpdateSchema(BaseModel):
     firstname: str = Field(min_length=2, max_length=30)
@@ -49,6 +37,10 @@ class UserUpdateSchema(BaseModel):
 
 class UpdateResponse(BaseModel):
     detail: str
+
+
+class UserUpdateUsernameSchema(BaseModel):
+    username: str = Field(min_length=8, max_length=20)
 
 
 class UserLoginSchema(BaseModel):
@@ -81,9 +73,23 @@ class TokenData(BaseModel):
     public_id: Union[str, None] = None
 
 
-class UserInDB(Users):
-    hashed_password: str
-
-
 class ConfirmationResponse(BaseModel):
     detail: str
+
+
+class ForgetPasswordResponse(BaseModel):
+    detail: str
+
+
+class ForgetPasswordForm(BaseModel):
+    email: EmailStr = Field(...)
+
+
+class ForgetPasswordTokenResponse(BaseModel):
+    detail: str
+
+
+class ForgetToken(BaseModel):
+    forget_token: str
+    new_password: str
+    new_password_again: str

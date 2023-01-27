@@ -31,5 +31,22 @@ class Email:
         response = self.client.send(message)
         return response
 
+    def passwordforgetMail(self, to, body, userName):
+        subject_ = f"Forget Password of {userName}"
+        content = EmailContent(
+            subject=subject_,
+            plain_text="This is the body",
+            html=f"<html><h5>Forget token: {body}</h5></html>",
+        )
+        address = EmailAddress(
+            email=to, display_name=userName)
+        message = EmailMessage(
+            sender=self.sender,
+            content=content,
+            recipients=EmailRecipients(to=[address])
+        )
+        response = self.client.send(message)
+        return response
+
 
 email = Email(connection_string=CONNECTION_STRING)
